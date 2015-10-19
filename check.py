@@ -21,21 +21,20 @@ def intb(intstr, reverse_endian=False):
  
 
 def parse_frequency(freq_str):
-    m = re.search('(\d)*([A-Za-z]*)', freq_str)
+    m = re.search('(\d\.*\d*)*([A-Za-z]*)', freq_str)
     unit = m.group(2)
-    num = intb(m.group(1))
-    if unit == 'HZ':
+    num = float(m.group(1))
+    if unit.lower() == 'hz':
         return num
-    elif unit == 'KHZ':
+    elif unit == 'khz':
         return num*1000
-    elif unit == 'MHZ':
+    elif unit.lower() == 'mhz':
         return num*pow(10,6)
     else:
         print 'Unrecognized unit during frequency parse with',freq_str
 
 
 class Message:
-
     ''' Contains fields of a CAN message and a message timestamp'''
     ''' NOTE: You cannot hash this because __eq__ is overwritten with non-unique function'''
 
@@ -99,24 +98,33 @@ class MessageBlock:
     def symbolify(self, spec):
         if self.error: return InterpretedMessageBlock(self.start_timestamp, self.end_timestamp, True, None, None, self.num_messages)
 
-        errors = ''
+        error = ''
         try:
             message_type = spec[self.can_id]
         except KeyError:
-            error = 'CAN ID {0} NOT IN SPECS'.format(hex(self.can_id))
+            error += 'CAN ID {0} NOT IN SPECS'.format(hex(self.can_id))
             return InterpretedMessageBlock(self.start_timestamp, self.end_timestamp, error, None, None,self.num_messages)
 
         data_str = bin(self.data)[2:]
         data_symbols = {}
         for segment in message_type.segments:
             data_part = int(data_str[segment.boundary[0]:segment.boundary[1]+1])
-            try:
-                data_symbols[segment.name] = segment.values[data_part]
-            except KeyError:
-                error = 'Data value {0} for {1} not adherent to spec.'.format(hex(data_part), segment.name)
-                return InterpretedMessageBlock(self.start_timestamp, self.end_timestamp, error, message_type.name, None,self.num_messages)
-        
-        return InterpretedMessageBlock(self.start_timestamp, self.end_timestamp, '', message_type.name, data_symbols, self.num_messages)
+            if segment.is_float:
+                data_symbols[segment.name + ' ' + segment.values[None]] = data_part
+            else:
+                no_match = True
+                for value, symbol in segment.values.items():
+                    if type(value) == type(1) and data_part == value:
+                        data_symbols[segment.name] = value
+                        no_match = False
+                        break
+                    elif type(value) == type((1,1)) and value[0] <= data_part and data_part <= value[1]:
+                        data_symbols[segment.name] = value
+                        no_match = False
+                        break
+                if no_match:
+                    error += 'Data value {0} for {1} not adherent to spec.'.format(hex(data_part), segment.name)
+        return InterpretedMessageBlock(self.start_timestamp, self.end_timestamp, error, message_type.name, data_symbols, self.num_messages)
 
     def __str__(self):
         if self.error:
@@ -256,11 +264,12 @@ class Log:
         
 
 class DataSegment:
-    def __init__(self, name, boundary):
+    def __init__(self, name, boundary, is_float):
         self.boundary = boundary
         self.name = name
         # Maps values to their corresponding symbol
         self.values = {}
+        self.is_float = is_float
 
     def add_value(self, value, symbol):
         self.values[value] = symbol
@@ -282,20 +291,35 @@ class DataSegment:
 
         boundary_size = self.boundary[1] - self.boundary[0] + 1
 
-        for value, symbol in self.values.items():
-            if len(bin(value)[2:]) > boundary_size:
-                errors += "Data value {0} will no fit in allocated segment with name {1}".format(value, self.name)
-            elif value < 0:
-                errors += "Negative values in %s" % self.name + '\n'
+        if self.is_float:
+            if len(self.values) > 1 or (None not in self.values):
+                errors += "Invalid float data field for segment {0}".format(self.name)
+                return errors, True
+            return '', False
+        else:
+            for value, symbol in self.values.items():
+                if type(value) == type(1):
+                    if len(bin(value)[2:]) > boundary_size:
+                        errors += "Data value {0} will no fit in allocated segment with name {1}\n".format(value, self.name)
+                    if value < 0:
+                        errors += "Negative values in %s" % self.name + '\n'
+                else:
+                    assert type(value) == type((1,1)) #data must be a threshold range
+                    if len(bin(value[0])[2:]) > boundary_size or len(bin(value[1])[2:]) > boundary_size:
+                        errors += "Data value {0} will no fit in allocated segment with name {1}\n".format(value, self.name)
+                    if value[1] < value[0]:
+                        errors += "Data value threshold {0} does not make sense.\n".format(value)
+                    if value < 0:
+                        errors += "Negative values in %s" % self.name + '\n'
 
-        if len(set(self.values.keys())) < len(self.values.keys()):
-            errors += "Duplicate values detected in data segment %s" % self.name
+            if len(set(self.values.keys())) < len(self.values.keys()):
+                errors += "Duplicate values detected in data segment %s" % self.name
 
-        if len(set(self.values.values())) < len(self.values.values()):
-            errors += "Duplicate value identifiers detected in data segment %s" % self.name
+            if len(set(self.values.values())) < len(self.values.values()):
+                errors += "Duplicate value symbols detected in data segment %s" % self.name
 
-        if errors: return errors, True
-        else: return '', False
+            if errors: return errors, True
+            else: return '', False
 
     def __str__(self):
         out = 'DATA_NAME=' + self.name + ' POSITION=' + str(self.boundary) + '\n\t'
@@ -400,19 +424,23 @@ def parse_data_line(line):
     assert line.startswith('DATA_NAME')
 
     segment_info = line.split()
-    NAME, BOUNDARY = None, None
+    NAME, BOUNDARY, IS_FLOAT = None, None, False
+
 
     for info in segment_info:
-        parts = info.split('=')
-        if parts[0] == 'DATA_NAME':
-            NAME = parts[1]
-        elif parts[0] == 'POSITION':
-            boundary_parts = parts[1].split(':')
-            BOUNDARY = (intb(boundary_parts[0]), intb(boundary_parts[1]))
+        if info == 'FLOAT':
+            IS_FLOAT=True
         else:
-            print 'Unrecognized field in data segment declaration line:\n\t',line
+            parts = info.split('=')
+            if parts[0] == 'DATA_NAME':
+                NAME = parts[1]
+            elif parts[0] == 'POSITION':
+                boundary_parts = parts[1].split(':')
+                BOUNDARY = (intb(boundary_parts[0]), intb(boundary_parts[1]))
+            else:
+                print 'Unrecognized field in data segment declaration line:\n\t',line
 
-    return DataSegment(NAME, BOUNDARY) 
+    return DataSegment(NAME, BOUNDARY, IS_FLOAT) 
 
 
 def parse_data_lines(lines):
@@ -420,7 +448,16 @@ def parse_data_lines(lines):
 
     for line in lines[1:]:
         parts = line.split()
-        data_segment.add_value(intb(parts[0]), parts[1])
+        if len(parts) == 1: #MUST BE FLOAT
+            assert data_segment.is_float
+            data_segment.add_value(None, parts[0])
+        else:
+            if '-' in parts[0]:
+                range_parts = parts[0].split('-')
+                assert len(range_parts) == 2
+                data_segment.add_value((intb(range_parts[0]), intb(range_parts[1])), parts[1])
+            else:
+                data_segment.add_value(intb(parts[0]), parts[1])
 
     return data_segment
     
@@ -429,12 +466,13 @@ def parse_message_lines(lines):
     message_type = parse_message_line(lines[0])
     data_begin_indices = [i for i, line in enumerate(lines) if line.strip().startswith('DATA_NAME')]
 
-    for i, begin_index in enumerate(data_begin_indices[:-1]):
-        data_segment = parse_data_lines(lines[begin_index:data_begin_indices[i+1]])
-        message_type.add_data_segment(data_segment)
+    if len(data_begin_indices) != 0:
+        for i, begin_index in enumerate(data_begin_indices[:-1]):
+            data_segment = parse_data_lines(lines[begin_index:data_begin_indices[i+1]])
+            message_type.add_data_segment(data_segment)
 
-    data_segment = parse_data_lines(lines[data_begin_indices[-1]:])
-    message_type.add_data_segment(data_segment)
+        data_segment = parse_data_lines(lines[data_begin_indices[-1]:])
+        message_type.add_data_segment(data_segment)
 
     return message_type
 
