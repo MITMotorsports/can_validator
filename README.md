@@ -2,11 +2,11 @@ I just finished up a little tool that will hopefully be useful managing traffic 
 
 The format should be pretty self explanatory (but feel free to ask questions). Then run:
 
-./check.py --validate_spec id_specification.txt
+    ./check.py --validate_spec example_can_spec.txt
 
 to make sure than the changes you made are A+, consistent, and valid*. Down the road, we can run MiniMon to listen over UART and produce a CSV log of all CAN messages on the bus.
 
-./check.py --check_log id_specification.txt FirstLogCAN.CSV
+    ./check.py --check_log example_can_spec.txt example_minimon_log.csv
 
 will validate the spec, produce a summarized log output, and check that what we see in the log matches the spec-defined bus behavior. Code and examples found here.
 
