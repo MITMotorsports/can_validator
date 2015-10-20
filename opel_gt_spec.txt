@@ -1,15 +1,17 @@
-###########################################################################################
-#					WHEEL VELOCITY SENSOR SPEC					#
-###########################################################################################
+#############################################################
+#              WHEEL VELOCITY SENSOR SPEC                   #
+#            May need to listen to IDs: 0x505, 0x600        #
+#############################################################
 
 MESSAGE_NAME=WHEEL_VELOCITY ID=0x703 FREQ=1HZ
     DATA_NAME=WHEEL_VELOCITY POSITION=0:15
         0x0000-0xFFFF WHEEL_VELOCITY_MPH
 
 
-###########################################################################################
-# 						THROTTLE SPEC						#
-###########################################################################################
+#############################################################
+#            THROTTLE INTERFACE SENSOR SPEC                 #
+#           May need to listen to IDs: 0x505,0x600          #
+#############################################################
 
 MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=100HZ
     DATA_NAME=ACC_VAL POSITION=0:7
@@ -22,9 +24,13 @@ MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=100HZ
         0x00-0xFF FLAGS
 
 
-###########################################################################################
-# 						DRIVER INPUT SPEC						#
-###########################################################################################
+#############################################################
+#                  DRIVER INTERFACE SPEC                    #
+#           May need to listen to IDs: None                 #
+#############################################################
+
+# Necessary Tritium BMS heartbeat, with specs defined
+# by http://skoppula.github.io/evt/bms_can_protocol.pdf
 
 MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
     DATA_NAME=KEY_IGNITION POSITION=0:15
@@ -47,11 +53,19 @@ MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
         0x00F0 WIPERS_OFF
         0x0F00 WIPERS_ON
 
+#############################################################
+#                    USER INTERFACE SPEC                    #
+#  May need listen to IDs: 0x703,0x600,0x505,0x6FB,0x6F4    #
+#############################################################
 
-############################################################################################
-# 						BMS SPEC							#
-# http://tritium.com.au/wp-content/uploads/2013/07/TRI67.010v2_BMS_BMU_Communications_Protocol.pdf	#
-############################################################################################
+# NO MESSAGES SENT FROM GAUGES
+
+#############################################################
+#                  (TRITIUM) BMS SPEC                       #
+#           May need to listen to IDs: None                 #
+#             mirror of tritium docs:                       #
+#      skoppula.github.io/evt/bms_can_protocol.pdf          #
+#############################################################
 
 MESSAGE_NAME=BMS_HEARTBEAT ID=0x600 FREQ=1HZ
     DATA_NAME=DEVICE_ID POSITION=0:31

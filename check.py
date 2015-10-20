@@ -387,7 +387,7 @@ class MessageType:
         return errors, errors_present
 
     def __str__(self):
-        out = 'MESSAGE_NAME=' + self.name + ' ID=' + str(self.can_id) + ' ENDIAN=' + self.endian + ' FREQ=' + str(self.freq) + '\n\t'
+        out = 'MESSAGE_NAME=' + str(self.name) + ' ID=' + str(self.can_id) + ' ENDIAN=' + str(self.endian) + ' FREQ=' + str(self.freq) + '\n\t'
         out += '\n\t'.join([str(segment) for segment in self.segments])
         return out
 
