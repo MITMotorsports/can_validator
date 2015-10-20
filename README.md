@@ -1,6 +1,6 @@
 I just finished up a little tool that will hopefully be useful managing traffic on the vehicle's CAN bus. Sometime on Saturday or otherwise, add the specs for the CAN messages that your module needs to use here.
 
-The format should be pretty self explanatory (but feel free to ask questions). Then run:
+The format* should be pretty self explanatory (but feel free to ask questions). Then run:
 
     ./check.py --validate_spec example_can_spec.txt
 
@@ -25,3 +25,6 @@ will validate the spec, produce a summarized log output, and check that what we 
 - Frequency constraints are met (e.g. is the heartbeat being sent out atleast every 1 second?)
 - Consecutive, repeated messages are compressed into 'message blocks' with start and end times. This dramatically improves readability of the log
 - IDs and data fields are converted to their human-readable symbols (as defined in the spec!)
+
+
+*There are a few features that the spec validator accepts, but aren't in the example spec file (e.g. range of data thresholds, float data values, etc.). A full demonstration of the format can now be found in `opel_gt_can_spec.txt`.
