@@ -1,3 +1,7 @@
+# TODO
+# Add data byte length
+# Add endian-ness support
+
 #############################################################
 #              WHEEL VELOCITY SENSOR SPEC                   #
 #            May need to listen to IDs: 0x505, 0x600        #
