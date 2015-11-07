@@ -57,6 +57,28 @@ MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
 # NO MESSAGES SENT FROM GAUGES
 
 #############################################################
+#                    PDM SPEC                               #
+#  May need listen to IDs: 0x505                            #
+#############################################################
+
+MESSAGE_NAME=PDM_PACKET ID=0x550 FREQ=10HZ
+    DATA_NAME=LOW_VOLTAGE_STATUS POSITION=0:7
+	0x00 OK
+	0xFF WARNING
+    DATA_NAME=LOW_VOLTAGE_BUS_BATTERY_FLAG POSITION=8:8
+	0b0 DOWN
+	0b1 UP
+    DATA_NAME=LOW_VOLTAGE_DC-DC_FLAG POSITION=9:9
+	0b0 DOWN
+	0b1 UP
+    DATA_NAME=CRITICAL_SYSTEMS_BATTERY_FLAG POSITION=10:10
+	0b0 DOWN
+	0b1 UP
+    DATA_NAME=CRITICAL_SYSTEMS_DC-DC_FLAG POSITION=11:11
+	0b0 DOWN
+	0b1 UP
+
+#############################################################
 #                  (TRITIUM) BMS SPEC                       #
 #           May need to listen to IDs: None                 #
 #             mirror of tritium docs:                       #
