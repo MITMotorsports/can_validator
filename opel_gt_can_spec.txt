@@ -13,7 +13,7 @@ MESSAGE_NAME=WHEEL_VELOCITY_1 ID=0x703 FREQ=5HZ
 
 MESSAGE_NAME=WHEEL_VELOCITY_2 ID=0x704 FREQ=5HZ
     DATA_NAME=WHEEL_VELOCITY_2 POSITION=0:15
-	0x0000-0xFFFF WHEEL_VELOCITY_RPM
+	    0x0000-0xFFFF WHEEL_VELOCITY_RPM
 
 
 #############################################################
@@ -28,9 +28,8 @@ MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=10HZ
         0x00-0xFFFF BRAKE_VAL
     DATA_NAME=REGEN_VAL POSITION=32:47
         0x00-0xFFFF REGEN_VAL
-     DATA_NAME=FLAGS POSITION=48:63
+    DATA_NAME=FLAGS POSITION=48:63
         0x00-0xFFFF FLAGS
-
 
 #############################################################
 #                  DRIVER INTERFACE SPEC                    #
@@ -40,14 +39,31 @@ MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=10HZ
 # Necessary Tritium BMS heartbeat, with specs defined
 # by http://skoppula.github.io/evt/bms_can_protocol.pdf
 
-MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
-    DATA_NAME=KEY_IGNITION POSITION=0:15
-        0x0020 ON
-        0x0040 OFF
+MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=2HZ
+    DATA_NAME=START_TESTS POSITION=0:0
+        0b0 NO_TESTS
+        0b1 START_TESTS
     DATA_NAME=DRIVE_STATUS POSITION=16:31
         0x0000 PARKED
         0x00F0 FORWARD
         0x0F00 REVERSE
+        0xF000 SHUTDOWN_IMPENDING
+        0xF000 CHARGE
+        0xF000 OFF
+
+#############################################################
+#                  ERROR CHANNEL SPEC                       #
+#           May need to listen to IDs: None                 #
+#############################################################
+
+MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
+    DATA_NAME=ERROR POSITION=0:19
+        0x0000 LOST_VELOCITY_HEARTBEAT
+        0x00F0 LOST_PDM_YHEARTBEAT
+        0x0F00 LOST_THROTTLE_HEARTBEAT
+        0xF000 LOST_BMS_HEARTBEAT
+        0xF0000 ERROR_NONE
+
 
 #############################################################
 #                    USER INTERFACE SPEC                    #
@@ -63,20 +79,20 @@ MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
 
 MESSAGE_NAME=PDM_PACKET ID=0x550 FREQ=10HZ
     DATA_NAME=LOW_VOLTAGE_STATUS POSITION=0:7
-	0x00 OK
-	0xFF WARNING
+	    0x00 OK
+	    0xFF WARNING
     DATA_NAME=LOW_VOLTAGE_BUS_BATTERY_FLAG POSITION=8:8
-	0b0 DOWN
-	0b1 UP
+	    0b0 DOWN
+	    0b1 UP
     DATA_NAME=LOW_VOLTAGE_DC-DC_FLAG POSITION=9:9
-	0b0 DOWN
-	0b1 UP
+	    0b0 DOWN
+	    0b1 UP
     DATA_NAME=CRITICAL_SYSTEMS_BATTERY_FLAG POSITION=10:10
-	0b0 DOWN
-	0b1 UP
+	    0b0 DOWN
+	    0b1 UP
     DATA_NAME=CRITICAL_SYSTEMS_DC-DC_FLAG POSITION=11:11
-	0b0 DOWN
-	0b1 UP
+	    0b0 DOWN
+	    0b1 UP
 
 #############################################################
 #                  (TRITIUM) BMS SPEC                       #

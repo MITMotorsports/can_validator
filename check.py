@@ -563,7 +563,7 @@ def validate_spec(spec_file):
     if errors_present:
         return 'Errors present!\n' + errors
     else:
-        return 'No errors in specfication file %s!' % spec_file.name
+        return 'No errors in specification file %s!' % spec_file.name
 
 
 if __name__ == "__main__":
