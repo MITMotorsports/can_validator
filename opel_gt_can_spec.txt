@@ -21,15 +21,13 @@ MESSAGE_NAME=WHEEL_VELOCITY_2 ID=0x704 FREQ=5HZ
 #           May need to listen to IDs: 0x505,0x600          #
 #############################################################
 
-MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=10HZ
-    DATA_NAME=ACC_VAL POSITION=0:15
-        0x00-0xFFFF ACC_VAL
-    DATA_NAME=BRAKE_VAL POSITION=16:31
-        0x00-0xFFFF BRAKE_VAL
-    DATA_NAME=REGEN_VAL POSITION=32:47
-        0x00-0xFFFF REGEN_VAL
-    DATA_NAME=FLAGS POSITION=48:63
-        0x00-0xFFFF FLAGS
+MESSAGE_NAME=TI_PACKET ID=0x301 FREQ=100HZ
+   DATA_NAME=ACC_VAL POSITION=0:7
+       0x00-0xFF ACC_VAL
+   DATA_NAME=BRAKE_VAL POSITION=8:15
+       0x00-0xFF BRAKE_VAL
+   DATA_NAME=FLAGS POSITION=16:23
+       0x00-0xFF FLAGS
 
 #############################################################
 #                  DRIVER INTERFACE SPEC                    #
