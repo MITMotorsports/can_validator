@@ -37,20 +37,18 @@ MESSAGE_NAME=TI_PACKET ID=0x301 FREQ=100HZ
 # Necessary Tritium BMS heartbeat, with specs defined
 # by http://skoppula.github.io/evt/bms_can_protocol.pdf
 
-MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=2HZ
+MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
     DATA_NAME=KEY_IGNITION POSITION=0:15
         0x0020 RUN 
         0x0040 START
-    DATA_NAME=START_TESTS POSITION=32:32
-        0b0 NO_TESTS
-        0b1 START_TESTS
     DATA_NAME=DRIVE_STATUS POSITION=16:31
         0x0000 PARKED
         0x00F0 FORWARD
-        0x0F00 REVERSE
-        0xF000 SHUTDOWN_IMPENDING
+        0x0030 REVERSE
+        0x0F00 SHUTDOWN_IMPENDING
+        0x0300 INIT
         0xF000 CHARGE
-        0xF000 OFF
+        0x3000 OFF
 
 #############################################################
 #                  ERROR CHANNEL SPEC                       #
