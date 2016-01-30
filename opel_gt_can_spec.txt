@@ -91,6 +91,9 @@ MESSAGE_NAME=PDM_PACKET ID=0x305 FREQ=10HZ
     DATA_NAME=CRITICAL_SYSTEMS_DC-DC_STATUS POSITION=3:3
 	    0b0 OFF
 	    0b1 ON
+    DATA_NAME=PDM_STATUS POSITION=4:4
+	    0b0 OFF
+	    0b1 ON
 
 #############################################################
 #                  (TRITIUM) BMS SPEC                       #
