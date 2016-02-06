@@ -21,15 +21,13 @@ MESSAGE_NAME=WHEEL_VELOCITY_2 ID=0x704 FREQ=5HZ
 #           May need to listen to IDs: 0x505,0x600          #
 #############################################################
 
-MESSAGE_NAME=TI_PACKET ID=0x700 FREQ=10HZ
-    DATA_NAME=ACC_VAL POSITION=0:15
-        0x00-0xFFFF ACC_VAL
-    DATA_NAME=BRAKE_VAL POSITION=16:31
-        0x00-0xFFFF BRAKE_VAL
-    DATA_NAME=REGEN_VAL POSITION=32:47
-        0x00-0xFFFF REGEN_VAL
-    DATA_NAME=FLAGS POSITION=48:63
-        0x00-0xFFFF FLAGS
+MESSAGE_NAME=TI_PACKET ID=0x301 FREQ=100HZ
+   DATA_NAME=ACC_VAL POSITION=0:7
+       0x00-0xFF ACC_VAL
+   DATA_NAME=BRAKE_VAL POSITION=8:15
+       0x00-0xFF BRAKE_VAL
+   DATA_NAME=FLAGS POSITION=16:23
+       0x00-0xFF FLAGS
 
 #############################################################
 #                  DRIVER INTERFACE SPEC                    #
@@ -70,32 +68,31 @@ MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
 #  May need listen to IDs: 0x703,0x600,0x505,0x6FB,0x6F4    #
 #############################################################
 
-# NO MESSAGES SENT FROM GAUGES
+MESSAGE_NAME=UI_PACKET ID=0x7F5 FREQ=1HZ
+    DATA_NAME=UI_HEARTBEAT POSITION=0:0
+        0b1 RUNNING
 
 #############################################################
 #                    PDM SPEC                               #
 #  May need listen to IDs: 0x505                            #
 #############################################################
 
-MESSAGE_NAME=PDM_PACKET ID=0x550 FREQ=10HZ
-    DATA_NAME=LOW_VOLTAGE_STATUS POSITION=0:0
-	    0b0 OK
-	    0b1 WARNING
-    DATA_NAME=LOW_VOLTAGE_BUS_BATTERY_FLAG POSITION=1:1
-	    0b0 DOWN
-	    0b1 UP
-    DATA_NAME=LOW_VOLTAGE_DC-DC_FLAG POSITION=2:2
-	    0b0 DOWN
-	    0b1 UP
-    DATA_NAME=CRITICAL_SYSTEMS_STATUS POSITION=3:3
-	    0b0 OK
-	    0b1 WARNING
-    DATA_NAME=CRITICAL_SYSTEMS_BATTERY_FLAG POSITION=4:4
-	    0b0 DOWN
-	    0b1 UP
-    DATA_NAME=CRITICAL_SYSTEMS_DC-DC_FLAG POSITION=5:5
-	    0b0 DOWN
-	    0b1 UP
+MESSAGE_NAME=PDM_PACKET ID=0x305 FREQ=10HZ
+    DATA_NAME=LOW_VOLTAGE_BUS_BATTERY_FLAG POSITION=0:0
+        0b0 DOWN
+        0b1 UP
+    DATA_NAME=LOW_VOLTAGE_DC-DC_STATUS POSITION=1:1
+        0b0 OFF
+        0b1 ON
+    DATA_NAME=CRITICAL_SYSTEMS_BATTERY_FLAG POSITION=2:2
+        0b0 DOWN
+        0b1 UP
+    DATA_NAME=CRITICAL_SYSTEMS_DC-DC_STATUS POSITION=3:3
+        0b0 OFF
+        0b1 ON
+    DATA_NAME=PDM_STATUS POSITION=4:4
+        0b0 OFF
+        0b1 ON
 
 #############################################################
 #                  (TRITIUM) BMS SPEC                       #
