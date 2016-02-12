@@ -69,7 +69,9 @@ MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
 #  May need listen to IDs: 0x703,0x600,0x505,0x6FB,0x6F4    #
 #############################################################
 
-# NO MESSAGES SENT FROM GAUGES
+MESSAGE_NAME=UI_PACKET ID=0x7F5 FREQ=1HZ
+    DATA_NAME=UI_HEARTBEAT POSITION=0:0
+        0b1 RUNNING
 
 #############################################################
 #                    PDM SPEC                               #
@@ -78,17 +80,20 @@ MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
 
 MESSAGE_NAME=PDM_PACKET ID=0x305 FREQ=10HZ
     DATA_NAME=LOW_VOLTAGE_BUS_BATTERY_FLAG POSITION=0:0
-	    0b0 DOWN
-	    0b1 UP
+        0b0 DOWN
+        0b1 UP
     DATA_NAME=LOW_VOLTAGE_DC-DC_STATUS POSITION=1:1
-	    0b0 OFF
-	    0b1 ON
+        0b0 OFF
+        0b1 ON
     DATA_NAME=CRITICAL_SYSTEMS_BATTERY_FLAG POSITION=2:2
-	    0b0 DOWN
-	    0b1 UP
+        0b0 DOWN
+        0b1 UP
     DATA_NAME=CRITICAL_SYSTEMS_DC-DC_STATUS POSITION=3:3
-	    0b0 OFF
-	    0b1 ON
+        0b0 OFF
+        0b1 ON
+    DATA_NAME=PDM_STATUS POSITION=4:4
+        0b0 OFF
+        0b1 ON
 
 #############################################################
 #                  (TRITIUM) BMS SPEC                       #
