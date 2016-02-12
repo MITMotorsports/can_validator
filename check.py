@@ -569,6 +569,7 @@ def validate_spec(spec_file):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Validates our CAN usage specification and analyzes that logs conform to our specification")
     parser.add_argument('--validate_spec', dest='validate_spec', type=file, nargs=1, help='Validates your CAN usage specification')
+    parser.add_argument('--generate_header', dest='generate_header', type=str, nargs=2, help='Validates your CAN usage specification and generates corresponding C header file')
     parser.add_argument('--check_log', dest='check_log', type=file, nargs=2, help='Check your CAN usage specification')
 
     args = parser.parse_args()
@@ -577,6 +578,40 @@ if __name__ == "__main__":
         errors = validate_spec(args.validate_spec[0])
         args.validate_spec[0].close()
         print errors
+    elif args.generate_header:
+        spec_file = open(args.generate_header[0], 'r')
+        output_file = args.generate_header[1]
+        try:
+            errors = validate_spec(spec_file)
+            print errors
+            if errors.startswith('No errors in'):
+                message_types = parse_spec_file(spec_file)
+                with open(output_file, 'w') as f:
+                    for message_id, message_type in message_types.items():
+                        f.write('#define ' + message_type.name + '_ID ' + str(message_type.can_id) + '\n')
+                        if message_type.freq:
+                            f.write('#define ' + message_type.name + '_FREQ ' + str(int(message_type.freq)) + '\n')
+                        else:
+                            f.write('#define ' + message_type.name + '_FREQ ' + str(-1) + '\n')
+                        for segment in message_type.segments:
+                            f.write('#define __' + segment.name + '_start ' + str(segment.boundary[0]) + '\n')
+                            f.write('#define __' + segment.name + '_end ' + str(segment.boundary[1]) + '\n')
+                            for value, symbol in segment.values.items():
+                                if isinstance(value, tuple):
+                                    f.write('#define ____' + symbol + '_from ' + str(value[0]) + '\n')
+                                    f.write('#define ____' + symbol + '_to ' + str(value[1]) + '\n')
+                                else:
+                                    if value is None:
+                                        f.write('#define ____' + symbol + ' ' + str(0) + '\n')
+                                    else:
+                                        f.write('#define ____' + symbol + ' ' + str(value) + '\n')
+
+
+                        f.write('\n')
+        finally:
+            spec_file.close()
+
+        print 'Wrote constants to ' + output_file + '!'
     elif args.check_log:
         print 'First validating spec file...'
         errors = validate_spec(args.check_log[0])
