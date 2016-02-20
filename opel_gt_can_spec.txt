@@ -282,13 +282,16 @@ MESSAGE_NAME=TRITIUM_BOOTLOADER_RESERVED3 ID=0x7F3
 MESSAGE_NAME=TRITIUM_BOOTLOADER_RESERVED4 ID=0x7F4
 
 
-#############################################################
-#                    (BRUSA) CHARGER SPEC                   #
-#            May need to listen to IDs:                     #
-#############################################################
+#############################################################################
+#                    (BRUSA) CHARGER SPEC                                   #
+# http://www.brusa.biz/_files/drive/02_Energy/Chargers/NLG5/NLG5_BRUSA.html #
+#            May need to listen to IDs:                                     #
+#############################################################################
 MESSAGE_NAME=BRUSA_NLG5_CONTROL ID=0x618
 MESSAGE_NAME=BRUSA_NLG5_STATUS ID=0x610
 MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_1 ID=0x611
 MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_2 ID=0x612
 MESSAGE_NAME=BRUSA_NLG5_TEMP_FEEDBACK ID=0x613
 MESSAGE_NAME=BRUSA_NLG5_ERROERS ID=0x614
+MESSAGE_NAME=BRUSA_NLG5_DIAG_RX ID=0x718
+MESSAGE_NAME=BRUSA_NLG5_DIAG_TX ID=0x71A
