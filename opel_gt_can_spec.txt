@@ -282,16 +282,32 @@ MESSAGE_NAME=TRITIUM_BOOTLOADER_RESERVED3 ID=0x7F3
 MESSAGE_NAME=TRITIUM_BOOTLOADER_RESERVED4 ID=0x7F4
 
 
-#############################################################################
-#                    (BRUSA) CHARGER SPEC                                   #
-# http://www.brusa.biz/_files/drive/02_Energy/Chargers/NLG5/NLG5_BRUSA.html #
-#            May need to listen to IDs:                                     #
-#############################################################################
-MESSAGE_NAME=BRUSA_NLG5_CONTROL ID=0x618
-MESSAGE_NAME=BRUSA_NLG5_STATUS ID=0x610
-MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_1 ID=0x611
-MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_2 ID=0x612
-MESSAGE_NAME=BRUSA_NLG5_TEMP_FEEDBACK ID=0x613
-MESSAGE_NAME=BRUSA_NLG5_ERROERS ID=0x614
+################################################################################
+#                    (BRUSA) CHARGER SPEC                                      #
+# http://www.brusa.biz/_files/drive/02_Energy/Chargers/NLG5/NLG5_BRUSA.html    #
+# http://www.brusa.biz/_files/drive/02_Energy/Chargers/NLG5/NLG5_Manual_EN.pdf #
+#            May need to listen to IDs:                                        #
+################################################################################
+
+# Control: I/U target value guidelines, control bits 
+MESSAGE_NAME=BRUSA_NLG5_CONTROL ID=0x618 FREQ=10Hz
+
+# Status: Status of the regulator and the limiter 
+# -> using this in DI
+MESSAGE_NAME=BRUSA_NLG5_STATUS ID=0x610 FREQ=10Hz
+
+# Int. values: I / U current values of the NLG5 
+MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_1 ID=0x611 FREQ=10Hz
+
+# Ext. values: Current external values (CP etc.)
+MESSAGE_NAME=BRUSA_NLG5_ACTUAL_VALUES_2 ID=0x612 FREQ=10Hz
+
+# Temperatures: Internal and external temperatures
+MESSAGE_NAME=BRUSA_NLG5_TEMP_FEEDBACK ID=0x613 FREQ=1Hz
+
+# Errors Fault causes and warnings
+# -> using this in DI
+MESSAGE_NAME=BRUSA_NLG5_ERROERS ID=0x614 FREQ=1Hz
+
 MESSAGE_NAME=BRUSA_NLG5_DIAG_RX ID=0x718
 MESSAGE_NAME=BRUSA_NLG5_DIAG_TX ID=0x71A
