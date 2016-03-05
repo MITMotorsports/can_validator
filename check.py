@@ -18,7 +18,7 @@ def intb(intstr, reverse_endian=False):
         if reverse_endian:
             return int('0b' + bin(int(intstr))[2:][::-1],2)
         return int(intstr)
- 
+
 
 def parse_frequency(freq_str):
     m = re.search('(\d\.*\d*)*([A-Za-z]*)', freq_str)
@@ -83,7 +83,7 @@ class InterpretedMessageBlock:
             return '[MessageBlock: ' + dt.strftime(self.start_timestamp, '%H:%M:%S.%f') + '-' + dt.strftime(self.end_timestamp, '%H:%M:%S.%f') + ' COUNT:' + str(self.num_messages)  + ' \n\t\tID: ' + self.id_symbol + ' \n\t\t' + self.error + '\n\t]'
         else:
             return '[MessageBlock: ' + dt.strftime(self.start_timestamp, '%H:%M:%S.%f') + '-' + dt.strftime(self.end_timestamp, '%H:%M:%S.%f') + ' COUNT:' + str(self.num_messages)  + ' \n\t\tID:' + self.id_symbol + ' \n\t\tData:' + str(self.data_symbols) + '\n\t]'
-            
+
 
 
 class MessageBlock:
@@ -134,7 +134,7 @@ class MessageBlock:
 
 
 class Log:
-    ''' 
+    '''
         Parses the header of a MiniMon CSV CAN log eavesdrop
         and saves data into object fields
 
@@ -209,7 +209,7 @@ class Log:
                     num_messages_in_block = 1
                     curr_message = message
                     self.message_blocks.append(message_block)
-            
+
             message_block = MessageBlock(curr_message.timestamp, self.messages[-1].timestamp, curr_message.error, curr_message.can_id, curr_message.data, num_messages_in_block)
             self.message_blocks.append(message_block)
 
@@ -252,16 +252,16 @@ class Log:
                 errors += '{0} (CAN ID {1}) do not satisfy frequency constraints. Problematic time frame begins at the beginning of .'.format(spec[can_id].name, hex(can_id))
             else:
                 errors += '{0} (CAN ID {1}) do not satisfy frequency constraints:\nProblematic time frame starts at {2}.\n'.format(spec[can_id].name, hex(can_id), str(timestamp - self.start_time))
-                
+
 
         return errors
-        
+
 
     def __str__(self):
         if not self.interpreted_message_blocks: print 'Warning: log has not been symbolified, or has no messages'
         return '[MiniMon Log: StartTime:' + dt.strftime(self.start_time,'%H:%M:%S.%f') + ' Messages:\n\t' + \
                 '\n\t'.join([str(message_block) for message_block in self.interpreted_message_blocks]) + '\n]'
-        
+
 
 class DataSegment:
     def __init__(self, name, boundary, is_float):
@@ -420,6 +420,7 @@ def parse_message_line(line):
 
     return MessageType(NAME, ID, ENDIAN, FREQ)
 
+
 def parse_data_line(line):
     assert line.startswith('DATA_NAME')
 
@@ -440,7 +441,7 @@ def parse_data_line(line):
             else:
                 print 'Unrecognized field in data segment declaration line:\n\t',line
 
-    return DataSegment(NAME, BOUNDARY, IS_FLOAT) 
+    return DataSegment(NAME, BOUNDARY, IS_FLOAT)
 
 
 def parse_data_lines(lines):
@@ -460,7 +461,7 @@ def parse_data_lines(lines):
                 data_segment.add_value(intb(parts[0]), parts[1])
 
     return data_segment
-    
+
 
 def parse_message_lines(lines):
     message_type = parse_message_line(lines[0])
@@ -499,6 +500,7 @@ def parse_spec_file(spec_file):
 
     return message_types
 
+
 def parse_message_log(log_file):
     log_file.seek(0)
     lines = log_file.readlines()
@@ -511,7 +513,7 @@ def parse_message_log(log_file):
     log = Log(lines[0:header_end_index])
     for line in lines[header_end_index+1:]:
         log.add_message_from_line(line)
-    
+
     return log
 
 
@@ -565,6 +567,9 @@ def validate_spec(spec_file):
     else:
         return 'No errors in specification file %s!' % spec_file.name
 
+def rh(text):
+  return text.replace("-", "_")  
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Validates our CAN usage specification and analyzes that logs conform to our specification")
@@ -588,23 +593,25 @@ if __name__ == "__main__":
                 message_types = parse_spec_file(spec_file)
                 with open(output_file, 'w') as f:
                     for message_id, message_type in message_types.items():
-                        f.write('#define ' + message_type.name + '_ID ' + str(message_type.can_id) + '\n')
+                        message_name = rh(message_type.name)
+                        f.write('#define ' + message_name + '__id ' + str(message_type.can_id) + '\n')
                         if message_type.freq:
-                            f.write('#define ' + message_type.name + '_FREQ ' + str(int(message_type.freq)) + '\n')
+                            f.write('#define ' + message_name + '__freq ' + str(int(message_type.freq)) + '\n')
                         else:
-                            f.write('#define ' + message_type.name + '_FREQ ' + str(-1) + '\n')
+                            f.write('#define ' + message_name + '__freq ' + str(-1) + '\n')
                         for segment in message_type.segments:
-                            f.write('#define __' + segment.name + '_start ' + str(segment.boundary[0]) + '\n')
-                            f.write('#define __' + segment.name + '_end ' + str(segment.boundary[1]) + '\n')
+                            segment_name = rh(segment.name)
+                            f.write('#define __' + message_name + '__' + segment_name + '__start ' + str(segment.boundary[0]) + '\n')
+                            f.write('#define __' + message_name + '__' + segment_name + '__end ' + str(segment.boundary[1]) + '\n')
                             for value, symbol in segment.values.items():
                                 if isinstance(value, tuple):
-                                    f.write('#define ____' + symbol + '_from ' + str(value[0]) + '\n')
-                                    f.write('#define ____' + symbol + '_to ' + str(value[1]) + '\n')
+                                    f.write('#define ____' + message_name + '__' + segment_name + '__' + symbol + '__FROM ' + str(value[0]) + '\n')
+                                    f.write('#define ____' + message_name + '__' + segment_name + '__' + symbol + '__TO ' + str(value[1]) + '\n')
                                 else:
                                     if value is None:
-                                        f.write('#define ____' + symbol + ' ' + str(0) + '\n')
+                                        f.write('#define ____' + message_name + '__' + segment_name + '__' + symbol + ' ' + str(0) + '\n')
                                     else:
-                                        f.write('#define ____' + symbol + ' ' + str(value) + '\n')
+                                        f.write('#define ____' + message_name + '__' + segment_name + '__' + symbol + ' ' + str(value) + '\n')
 
 
                         f.write('\n')
