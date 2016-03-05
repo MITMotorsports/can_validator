@@ -7,6 +7,18 @@
 #            May need to listen to IDs: 0x505, 0x600        #
 #############################################################
 
+MESSAGE_NAME=MI_PACKET ID=0x705 FREQ=1HZ
+    DATA_NAME=IS_SHUTDOWN_OK POSITION=0:1
+        0x0 OK
+        0x1 NOT_OKAY
+    DATA_NAME=MOTOR_CURRENT POSITION=2:17
+        0x0000-0xFFFF CURRENT_AMPS
+
+#############################################################
+#              WHEEL VELOCITY SENSOR SPEC                   #
+#            May need to listen to IDs: 0x505, 0x600        #
+#############################################################
+
 MESSAGE_NAME=WHEEL_VELOCITY_1 ID=0x703 FREQ=5HZ
     DATA_NAME=WHEEL_VELOCITY_1 POSITION=0:15
         0x0000-0xFFFF WHEEL_VELOCITY_RPM
@@ -307,7 +319,7 @@ MESSAGE_NAME=BRUSA_NLG5_TEMP_FEEDBACK ID=0x613 FREQ=1Hz
 
 # Errors Fault causes and warnings
 # -> using this in DI
-MESSAGE_NAME=BRUSA_NLG5_ERROERS ID=0x614 FREQ=1Hz
+MESSAGE_NAME=BRUSA_NLG5_ERRORS ID=0x614 FREQ=1Hz
 
 MESSAGE_NAME=BRUSA_NLG5_DIAG_RX ID=0x718
 MESSAGE_NAME=BRUSA_NLG5_DIAG_TX ID=0x71A
