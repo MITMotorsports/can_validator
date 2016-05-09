@@ -3,7 +3,7 @@
 # Add endian-ness support
 
 #############################################################
-#              WHEEL VELOCITY SENSOR SPEC                   #
+#              MOTOR INTERFACE SENSOR SPEC                   #
 #            May need to listen to IDs: 0x505, 0x600        #
 #############################################################
 
@@ -42,9 +42,9 @@ MESSAGE_NAME=TI_PACKET ID=0x301 FREQ=100HZ
        0x00-0xFF BRAKE_VAL
    DATA_NAME=FLAGS POSITION=16:23
        0x00-0xFF FLAGS
-
+DRIVER
 #############################################################
-#                  DRIVER INTERFACE SPEC                    #
+#                   INTERFACE SPEC                    #
 #           May need to listen to IDs: None                 #
 #############################################################
 
@@ -67,17 +67,18 @@ MESSAGE_NAME=DI_PACKET ID=0x505 FREQ=10HZ
 
 #############################################################
 #                  ERROR CHANNEL SPEC                       #
+#                (NEEDS TO BE DELETED, NO LONGER USED)      #
 #           May need to listen to IDs: None                 #
 #############################################################
 
 #LOGGED
-MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
-    DATA_NAME=ERROR POSITION=0:19
-        0x0000 LOST_VELOCITY_HEARTBEAT
-        0x00F0 LOST_PDM_YHEARTBEAT
-        0x0F00 LOST_THROTTLE_HEARTBEAT
-        0xF000 LOST_BMS_HEARTBEAT
-        0xF0000 ERROR_NONE
+#MESSAGE_NAME=ERROR_PACKET ID=0x506 FREQ=2HZ
+#    DATA_NAME=ERROR POSITION=0:19
+#        0x0000 LOST_VELOCITY_HEARTBEAT
+#        0x00F0 LOST_PDM_HEARTBEAT
+#        0x0F00 LOST_THROTTLE_HEARTBEAT
+#        0xF000 LOST_BMS_HEARTBEAT
+#        0xF0000 ERROR_NONE
 
 
 #############################################################
