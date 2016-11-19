@@ -119,6 +119,12 @@ MESSAGE_NAME=PDM_PACKET ID=0x305 FREQ=10HZ
     DATA_NAME=PDM_STATUS POSITION=4:4
         0b0 OFF
         0b1 ON
+    DATA_NAME=COMMUNICATION_ERROR_FLAG POSITION=5:5
+        0b0 DOWN
+        0b1 UP
+    DATA_NAME=PDM_ERROR_FLAG POSITION=6:6
+        0b0 DOWN
+        0b1 UP
 
 #############################################################
 #                  (TRITIUM) BMS SPEC                       #
