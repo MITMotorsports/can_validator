@@ -30,6 +30,8 @@
 *.axf
 *.map
 
+*.h
+
 # Utilities
 *.jar
 *.dia*
