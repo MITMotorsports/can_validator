@@ -106,3 +106,17 @@ MESSAGE_NAME=FRONT_CAN_NODE_WHEEL_SPEED ID=0x130 FREQ=50HZ
     DATA_NAME=FRONT_LEFT_WHEEL_SPEED POSITION=32:63
         0x000-0xFFFFFFFF FRONT_LEFT_WHEEL_SPEED
 
+#############################################################
+#                  Current Sensor SPEC                      #
+#           May need to listen to IDs: None                 #
+#############################################################
+
+# Big-endian, units of mA
+MESSAGE_NAME=CURRENT_SENSOR_CURRENT ID=0x521 FREQ=20HZ
+    DATA_NAME=PACK_CURRENT POSITION=16:47
+        0x00000000-0xFFFFFFFF PACK_CURRENT
+
+# Big-endian, units of mV
+MESSAGE_NAME=CURRENT_SENSOR_VOLTAGE ID=0x522 FREQ=20HZ
+    DATA_NAME=PACK_VOLTAGE POSITION=16:47
+        0x000 - 0xFFFFFFFF PACK_VOLTAGE
