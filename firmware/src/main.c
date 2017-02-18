@@ -1,156 +1,163 @@
-#include "board.h"
+#include "chip.h"
+#include "sysinit.h"
+#include "can.h"
 
-// -------------------------------------------------------------
-// Macro Definitions
+#include <string.h>
 
-#define CCAN_BAUD_RATE 1000000 					// Desired CAN Baud Rate
-#define UART_BAUD_RATE 57600 					// Desired UART Baud Rate
+const uint32_t OscRateIn = 0;
 
-#define BUFFER_SIZE 8
+/*****************************************************************************
+ * Private types/enumerations/variables/macros
+ ****************************************************************************/
 
-#define STATUS_LED_PERIOD 200
+#define LED0 2, 8
+#define LED1 2, 10
 
-// -------------------------------------------------------------
-// Static Variable Declaration
 
-extern volatile uint32_t msTicks;
+volatile uint32_t msTicks;
 
-static CCAN_MSG_OBJ_T msg_obj; 					// Message Object data structure for manipulating CAN messages
-static RINGBUFF_T can_rx_buffer;				// Ring Buffer for storing received CAN messages
-static CCAN_MSG_OBJ_T _rx_buffer[BUFFER_SIZE]; 	// Underlying array used in ring buffer
+#define UART_RX_BUFFER_SIZE 8
+static char uart_rx_buf[UART_RX_BUFFER_SIZE];
+static CCAN_MSG_OBJ_T msg_obj;
 
-static bool can_error_flag;
-static uint32_t can_error_info;
+#ifdef DEBUG_ENABLE
+	static char temp_str[10];
+	#define DEBUG_Print(str) Chip_UART_SendBlocking(LPC_USART, str, strlen(str))
+	#define DEBUG_Println(str) {DEBUG_Print(str); DEBUG_Print("\r\n");}
+	#define DEBUG_PrintNum(num, base) {itoa(num, temp_str, base); DEBUG_Print(temp_str);}
+	#define DEBUG_Write(str, count) Chip_UART_SendBlocking(LPC_USART, str, count)
+#else
+	#define DEBUG_Print(str)
+	#define DEBUG_Println(str)
+	#define DEBUG_PrintNum(num, base)
+	#define DEBUG_Write(str, count) 
+#endif
 
-// -------------------------------------------------------------
-// Helper Functions
+/*****************************************************************************
+ * Private functions
+ ****************************************************************************/
 
-/**
- * Delay the processor for a given number of milliseconds
- * @param ms Number of milliseconds to delay
- */
-void _delay(uint32_t ms) {
-	uint32_t curTicks = msTicks;
-	while ((msTicks - curTicks) < ms);
+void SysTick_Handler(void) {
+	msTicks++;
 }
 
-// -------------------------------------------------------------
-// CAN Driver Callback Functions
+static void LED_Init(uint8_t port, uint8_t pin) {
+	Chip_GPIO_WriteDirBit(LPC_GPIO, port, pin, true);
+	Chip_GPIO_SetPinState(LPC_GPIO, port, pin, false);
 
-/*	CAN receive callback */
-/*	Function is executed by the Callback handler after
-    a CAN message has been received */
-void CAN_rx(uint8_t msg_obj_num) {
-	// LED_On();
-	/* Determine which CAN message has been received */
-	msg_obj.msgobj = msg_obj_num;
-	/* Now load up the msg_obj structure with the CAN message */
-	LPC_CCAN_API->can_receive(&msg_obj);
-	if (msg_obj_num == 1) {
-		RingBuffer_Insert(&can_rx_buffer, &msg_obj);
-	}
 }
 
-/*	CAN transmit callback */
-/*	Function is executed by the Callback handler after
-    a CAN message has been transmitted */
-void CAN_tx(uint8_t msg_obj_num) {
-	msg_obj_num = msg_obj_num;
+static void LED_Write(uint8_t port, uint8_t pin, uint8_t val) {
+	Chip_GPIO_SetPinState(LPC_GPIO, port, pin, val);
 }
 
-/*	CAN error callback */
-/*	Function is executed by the Callback handler after
-    an error has occurred on the CAN bus */
-void CAN_error(uint32_t error_info) {
-	can_error_info = error_info;
-	can_error_flag = true;
-}
-
-// -------------------------------------------------------------
-// Interrupt Service Routines
-
-
-// -------------------------------------------------------------
-// Main Program Loop
 
 int main(void)
 {
+	SysTick_Config (TicksPerMS);
+
+	LPC_SYSCTL->CLKOUTSEL = 0x03; 		// Main CLK (Core CLK) Out
+	LPC_SYSCTL->CLKOUTUEN = 0x00; 		// Toggle Update CLKOUT Source
+	LPC_SYSCTL->CLKOUTUEN = 0x01;
+	while(!(LPC_SYSCTL->CLKOUTUEN & 0x1)); // Wait until updated
+	LPC_SYSCTL->CLKOUTDIV = 0x04; 		// No division
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, IOCON_PIO0_1, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_OPENDRAIN_EN)); /*CLKOUT*/
 
 	//---------------
-	// Initialize UART Communication
-	Board_UART_Init(UART_BAUD_RATE);
-	Board_UART_Println("Started up");
+	//UART
+	Chip_IOCON_PinMuxSet(LPC_IOCON, IOCON_PIO1_6, (IOCON_FUNC1 | IOCON_MODE_INACT));/* RXD */
+	Chip_IOCON_PinMuxSet(LPC_IOCON, IOCON_PIO1_7, (IOCON_FUNC1 | IOCON_MODE_INACT));/* TXD */
 
+	Chip_UART_Init(LPC_USART);
+	Chip_UART_SetBaud(LPC_USART, UART_BAUD);
+	Chip_UART_ConfigData(LPC_USART, (UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS));
+	Chip_UART_SetupFIFOS(LPC_USART, (UART_FCR_FIFO_EN | UART_FCR_TRG_LEV2));
+	Chip_UART_TXEnable(LPC_USART);
 	//---------------
-	// Initialize SysTick Timer to generate millisecond count
-	if (Board_SysTick_Init()) {
-		Board_UART_Println("Failed to Initialize SysTick. ");
-		// Unrecoverable Error. Hang.
-		while(1);
-	}
 
-	//---------------
-	// Initialize GPIO and LED as output
-	Board_LEDs_Init();
-	Board_LED_On(LED0);
+	CAN_Init(500000);
 
-	//---------------
-	// Initialize CAN  and CAN Ring Buffer
+	DEBUG_Print("Started up\n\r");
 
-	RingBuffer_Init(&can_rx_buffer, _rx_buffer, sizeof(CCAN_MSG_OBJ_T), BUFFER_SIZE);
-	RingBuffer_Flush(&can_rx_buffer);
+	LED_Init(LED0);
+	LED_Init(LED1);
 
-	Board_CAN_Init(CCAN_BAUD_RATE, CAN_rx, CAN_tx, CAN_error);
+	LED_Write(LED0, true);
 
-	// For your convenience.
-	// typedef struct CCAN_MSG_OBJ {
-	// 	uint32_t  mode_id;
-	// 	uint32_t  mask;
-	// 	uint8_t   data[8];
-	// 	uint8_t   dlc;
-	// 	uint8_t   msgobj;
-	// } CCAN_MSG_OBJ_T;
 
-	msg_obj.msgobj = 1;
-	msg_obj.mode_id = 0x000;
-	msg_obj.mask = 0x000;
-	LPC_CCAN_API->config_rxmsgobj(&msg_obj);
+	uint32_t reset_can_peripheral_time;
+    const uint32_t can_error_delay = 1000;
+    bool reset_can_peripheral = false;
 
-	can_error_flag = false;
-	can_error_info = 0;
-
-	uint8_t status_led_state = 1;
-	uint32_t status_led_time = msTicks;
+    CAN_ERROR_T ret;
 
 	while (1) {
-		if (!RingBuffer_IsEmpty(&can_rx_buffer)) {
-			Board_LED_On(LED3);
-			CCAN_MSG_OBJ_T temp_msg;
-			RingBuffer_Pop(&can_rx_buffer, &temp_msg);
-			Board_UART_PrintNum(temp_msg.mode_id, 16, false);
-			Board_UART_Print("\t");
-			Board_UART_PrintNum(temp_msg.dlc, 10, false);
+		uint8_t count;
+		if ((count = Chip_UART_Read(LPC_USART, uart_rx_buf, UART_RX_BUFFER_SIZE)) != 0) {
+				DEBUG_Write(uart_rx_buf, count);
+				if (uart_rx_buf[0] == 'a') {
+					msg_obj.msgobj = 1;
+					msg_obj.mode_id = 0x618;
+					msg_obj.dlc = 7;
+					msg_obj.data[0] = (1 << 7);
+					msg_obj.data[1] = 10 >> 8;
+					msg_obj.data[2] = 10 & 0xFF;
+					msg_obj.data[3] = 0;
+					msg_obj.data[4] = 0;
+					msg_obj.data[5] = 0;
+					msg_obj.data[6] = 0;
 
-			int i = 0;
-			for (i = 0; i < temp_msg.dlc; i++) {
-				Board_UART_Print("\t");
-				Board_UART_PrintNum(temp_msg.data[i], 16, false);
-			}
-
-			Board_UART_Println("");
-			Board_LED_Off(LED3);
-		}	
-
-		if (can_error_flag) {
-			can_error_flag = false;
-			Board_UART_Print("CAN Error: 0b");
-			Board_UART_PrintNum(can_error_info, 2, true);
+					ret = CAN_TransmitMsgObj(&msg_obj);
+                    if(ret != NO_CAN_ERROR) {
+                        DEBUG_Print("CAN Error (Tx): ob");
+					    DEBUG_PrintNum(ret, 2);
+                        DEBUG_Println("");
+                    }
+				}
 		}
 
-		if (msTicks - status_led_time > STATUS_LED_PERIOD) {
-			status_led_time = msTicks;
-			status_led_state = 1 - status_led_state;
-			Board_LED_Set(LED0, status_led_state);
-		}
+		// if (msTicks - last_count > 1000) {
+		// 	last_count = msTicks;
+		// 	DEBUG_Print("PING\r\n");
+		// }
+
+
+        if(reset_can_peripheral && msTicks > reset_can_peripheral_time) {
+            DEBUG_Print("Attempting to reset CAN peripheral...\r\n ");
+            CAN_ResetPeripheral();
+            CAN_Init(500000);
+            DEBUG_Print("Reset CAN peripheral. \r\n ");
+            reset_can_peripheral = false;
+        }
+
+	    ret = CAN_Receive(&msg_obj);
+        if(ret == NO_RX_CAN_MESSAGE) {
+            // DEBUG_Print("No CAN message received...\r\n");
+        } else if(ret == NO_CAN_ERROR) {
+            // DEBUG_Print("Recieved data ");
+            // Print_Buffer(rx_msg.data, rx_msg.dlc);
+            // DEBUG_Print(" from ");
+            // itoa(rx_msg.mode_id, str, 16);
+            // DEBUG_Print(str);
+            // DEBUG_Print("\r\n");
+            DEBUG_Print("0x");
+            DEBUG_PrintNum(msg_obj.mode_id, 16);
+            DEBUG_Print(" ");
+            DEBUG_PrintNum(msg_obj.dlc, 10);
+            int i;
+            for (i = 0; i < msg_obj.dlc; i++) {
+            	DEBUG_Print(" 0x");
+            	DEBUG_PrintNum(msg_obj.data[i], 16);
+            }
+            DEBUG_Println("");
+        } else {
+            DEBUG_Print("CAN Error: ");
+            DEBUG_PrintNum(ret, 2)
+            DEBUG_Println("");
+
+            reset_can_peripheral = true;
+            reset_can_peripheral_time = msTicks + can_error_delay;
+        }
 	}
 }
