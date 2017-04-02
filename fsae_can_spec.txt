@@ -15,10 +15,6 @@ MESSAGE_NAME=VCU_HEARTBEAT ID=0x050 FREQ=1HZ
         0x0 STANDBY
         0x1 DISCHARGE
 
-MESSAGE_NAME=VCU_DISCHARGE_REQUEST ID=0x051
-    DATA_NAME=DISCHARGE_REQUEST POSITION=0:0
-        0x1 ENTER_DISCHARGE
-
 #############################################################
 #                      BMS SPEC                             #
 #           May need to listen to IDs: None                 #
@@ -35,11 +31,6 @@ MESSAGE_NAME=BMS_HEARTBEAT ID=0x060 FREQ=1HZ
         0x6 BMS_FAULT
     DATA_NAME=SOC_PERCENTAGE POSITION=3:12
         0x000-0x3FF SOC_PERCENTAGE
-
-MESSAGE_NAME=BMS_DISCHARGE_RESPONSE ID=0x061
-    DATA_NAME=DISCHARGE_RESPONSE POSITION=0:0
-        0x0 NOT_READY
-        0x1 READY
 
 MESSAGE_NAME=BMS_PACK_STATUS ID=0x260 FREQ=10HZ
     DATA_NAME=PACK_VOLTAGE POSITION=0:9
@@ -83,6 +74,7 @@ MESSAGE_NAME=BMS_ERRORS ID=0x262 FREQ=0.1HZ
         0x4 EEPROM
         0x9 CAN
         0x10 CONFLICTING_MODE_REQUESTS
+        0x11 VCU_DEAD
 
 #############################################################
 #                  Front CAN Node SPEC                      #
