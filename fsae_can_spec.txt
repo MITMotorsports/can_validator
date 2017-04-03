@@ -12,8 +12,7 @@
 
 MESSAGE_NAME=VCU_HEARTBEAT ID=0x050 FREQ=1HZ
     DATA_NAME=STATE POSITION=0:0
-        0x0 STANDBY
-        0x1 DISCHARGE
+        0x0 DISCHARGE
 
 #############################################################
 #                      BMS SPEC                             #
